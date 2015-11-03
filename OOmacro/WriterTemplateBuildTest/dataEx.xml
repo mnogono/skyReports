@@ -1,0 +1,33 @@
+<datasource>
+	<tables>
+		<table caption="caption" id="table_id1">
+			<tr>
+				<td>
+				</td>
+			</tr>
+		</table>
+	</tables>
+	<replace>
+		<text find="${id}">Value</text>
+		<text find="${solutionCaption}">Value</text>
+		
+		<text find="${sample.%attribute1%}">Value</text>
+		
+		<text find="${result.%resultGroup1.resultId1%}">Value</text>
+		<text find="${result.%resultGroup1.resultId2%}">Value</text>
+		
+		<text find="${.*}" type="regexp"></text>
+	</replace>
+	<images>
+		<img id="img1" src="C:\temp\1.jpg" caption="images1"/>
+		<img id="img2" src="C:\temp\2.jpg" caption="images2"/>
+	</images>
+	<bookmarks>
+		<object bookmark_id="images" type="img" object_id="img1"/>
+		<object bookmark_id="images" type="img" object_id="img2"/>
+		<object bookmark_id="images" type="img" object_id="img3"/>
+		<object bookmark_id="images" type="img" object_id="img4"/>
+		<object bookmark_id="tables" type="table" object_id="table1"/>
+		<object bookmark_id="tables" type="table" object_id="table2"/>
+	</bookmarks>
+</datasource>

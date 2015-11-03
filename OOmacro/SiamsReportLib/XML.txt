@@ -1,0 +1,71 @@
+Option Explicit
+
+Sub Main
+End Sub
+
+'Read xml file and return tree structure of all 'nodes'
+'in BASIC theare are 2 different ways to read xml file:
+'1. using com.sun.star.sax.XParse 
+'  (read xml step by step, using listeners for parsing xml, require less memmory)
+'  good for big xml files
+'2. using com.sun.star.xml.dom.DocumentBuilder
+'   read xml file whole in memmory
+'   require more memmory then XParser but more simpler
+'   each node of xml tree is com.sun.star.xml.dom.XNode
+Function ParseXMLFile(sFile as String)
+	Dim oDocBuilder
+	Dim oDOM
+	Dim sURL as String
+	Dim oSFA
+	Dim oElements
+	
+	ParseXMLFile = oDOM
+	
+	On Error Goto Catch
+
+	sUrl = ConvertToURL(sFile)
+	
+	oDocBuilder = createUnoService("com.sun.star.xml.dom.DocumentBuilder")
+	oDOM = oDocBuilder.parseURI(sURL)
+	
+	ParseXMLFile = oDOM
+	
+	Exit Function 
+	
+	Catch:
+End Function
+
+Function FindAll(oDOM as Object, arPath() as String, nodeType) as Object
+	Dim itPathIndex as Integer
+	Dim itNodeIndex as Integer
+	Dim oElements as Object
+	Dim oNode as Object
+	Dim sNodeName as String
+	'TArray
+	Dim arFindedNodes as Object
+	
+	oElements = oDOM.GetChildNodes()
+	
+	
+	For itPathIndex = 0 To UBound(arPath) - 1
+		For itNodeIndex = 0 To oElements.GetLength - 1
+			oNode = oElements.Item(itNodeIndex)
+			Select Case oNode.GetNodeType
+				Case nodeType
+					sNodeName = oNode.GetNodeName()
+					If sNodeName = arPath(itPathIndex) Then
+						If ItPathIndex = UBound(arPath) - 1 Then
+							SiamsReportLib.TArray.Add(arFindedNodes, oNode)
+						Else
+							oElements = oNode.GetChildNodes()
+							Exit For
+						End If
+					End If
+			End Select
+		Next itNodeIndex
+	Next itPathIndex
+	
+	FindAll = arFindedNodes
+End Function
+
+

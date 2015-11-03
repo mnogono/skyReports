@@ -1,0 +1,83 @@
+Option Explicit
+
+Type TArray
+	iLength as Integer
+	iUBound as Integer
+	arData(0) as Variant
+	isInitialized as Integer
+End Type
+
+Sub Main
+	Dim ar as new TArray
+	SiamsReportLib.TArray.Add(ar, 1)
+	SiamsReportLib.TArray.Add(ar, 2)
+	SiamsReportLib.TArray.Add(ar, 3)
+	SiamsReportLib.TArray.Add(ar, 4)			
+	SiamsReportLib.TArray.Add(ar, 5)	
+	SiamsReportLib.TArray.Add(ar, 6)		
+	print Join(ar.arData,",")
+	print UBound(ar.arData)
+	
+	Dim a
+	a = ConvertToArray(ar)
+	print UBound(a)
+	print Join(a,",")
+End Sub
+
+Function Create(optional iLength)
+	Dim ar as Object
+	ar = CreateObject("TArray")
+	
+	If (IsMissing(iLength)) Then
+		iLength = 10
+	End If
+	
+	Dim arData
+	arData = ar.arData
+	
+	ReDim arData(iLength)
+	
+	ar.arData = arData
+
+	ar.iLength = 0
+	ar.iUBound = iLength
+	ar.isInitialized = 1
+
+	Create = ar
+End Function
+
+Sub IncreaseSize(ar as TArray)
+	ar.iUBound = ar.iUBound * 2
+	Dim arData
+	arData = ar.arData
+	ReDim Preserve arData(ar.iUBound)
+	
+	ar.arData = arData
+End Sub
+
+Sub Add(ar as TArray, value as Variant)
+	If IsNull(ar) Then
+		ar = Create(1)
+	End If
+
+	If ar.isInitialized = 0 Then
+		ar = Create(1)
+	End If
+
+	If ar.iLength = ar.iUBound Then
+		IncreaseSize(ar)
+	End If
+	
+	ar.arData(ar.iLength) = value
+	ar.iLength = ar.iLength + 1
+End Sub
+
+Function ConvertToArray(ar as TArray)
+	Dim arResult(ar.iLength - 1)
+	Dim i
+	For i = 0 To ar.iLength - 1
+		arResult(i) = ar.arData(i)
+	Next i
+	
+	ConvertToArray = arResult
+End Function

@@ -1,0 +1,440 @@
+Option Explicit
+
+Type TUserData
+	sId as String
+	sText as String
+End Type
+
+Type TFindReplaceData
+	sFind as String
+	sReplace as String
+End Type
+
+Type TTableData
+	sTableId as String
+	iStartRow as Integer
+	arRowsData as Object
+End Type
+
+Type TImage
+	sId as String
+	sSrc as String
+	sURL as String
+End Type
+
+Type TBookmark
+	sBookmarkId as String
+	sType as String
+	sText as String
+	sObjectId as String
+End Type
+
+Type TChartLayer
+	sId as String
+	arData as Object 'TArray of Double
+End Type
+
+Type TChart
+	sId as String
+	arLayers as Object 'TArray of TChartLayer
+	arXLabels as Object 'TArray of String
+End Type
+
+'SiamsReportBuilder.TArray.TArray of users data
+Dim arUsersData as Object
+
+'SiamsReportBuilder.TArray.TArray of replace texts in document
+Dim arTextForReplace as Object
+
+'SiamsReportBuilder.TArray.TArray of tables
+Dim arTablesData as Object
+
+'SiamsReportBuilder.TArray.TArray of images
+Dim arImagesData as Object
+
+'SiamsReportBuilder.TArray.TArray of bookmarks
+Dim arBookmarksData as Object
+
+'SiamsReportBuilder.TArray.TArray of charts
+Dim arChartsData as Object
+
+Sub Main
+	SiamsReportBuilder.BuilderSettings.ReadXMLSettingsFile("D:/w/OpenOfficeTest/WriterTemplateBuildTest/settings.xml")
+	SiamsReportBuilder.BuilderData.ReadXMLDataFile(SiamsReportBuilder.BuilderSettings.BuilderSettings.sDataFile)
+End Sub
+
+Sub ReadXMLDataFile(sFile as String)
+	Dim oDOM as Object
+	
+	oDOM = SiamsReportLib.XML.ParseXMLFile(sFile)
+	If IsEmpty(oDOM) Then
+		print "oDOM is empty"
+		Exit Sub
+	End If
+	
+	'user data fields
+	arUsersData = GetUsersDataFromDOM(oDOM)
+	
+	'text to replace
+	arTextForReplace = GetTextForReplaceFromDOM(oDOM)
+	
+	'tables
+	arTablesData = GetTablesFromDOM(oDOM)
+	
+	'images
+	arImagesData = GetImagesFromDOM(oDOM)
+	
+	'bookmarks
+	arBookmarksData = GetBookmarksFromDOM(oDOM)
+	
+	'charts
+	arChartsData = GetChartsFromDOM(oDOM)
+	
+	'charts
+End Sub
+
+Function GetUsersDataFromDOM(oDOM as Object) as Object
+	Dim arPath(3) as String
+	arPath(0) = "datasources"
+	arPath(1) = "users"
+	arPath(2) = "text"
+	
+	Dim oElements as Object 'TArray
+ 	oElements = SiamsReportLib.XML.FindAll(oDOM, arPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+ 	
+ 	Dim arUsersData as Object
+ 	arUsersData = SiamsReportLib.TArray.Create(1)
+
+	If Not IsNull(oElements) Then 	
+	 	Dim itIndex
+	 	Dim oNode as Object
+	 	Dim sId as String
+	 	Dim sText as String
+	 	For itIndex = 0 To oElements.iLength - 1
+	 		oNode = oElements.arData(itIndex)
+	 		sId = oNode.GetAttribute("id")
+	 		sText = oNode.GetChildNodes().Item(0).GetNodeValue()
+
+			Dim oUserData as new TUserData
+			oUserData.sId = sId
+			oUserData.sText = sText
+	 		
+	 		SiamsReportLib.TArray.Add(arUsersData, oUserData)
+	 	Next itIndex
+ 	End If
+ 	
+ 	GetUsersDataFromDOM = arUsersData
+End Function
+
+Function GetTextForReplaceFromDOM(oDOM) as Object
+	Dim arPath(3) as String
+	arPath(0) = "datasources"
+	arPath(1) = "replace"
+	arPath(2) = "text"
+	
+	Dim oElements as Object 'TArray
+ 	oElements = SiamsReportLib.XML.FindAll(oDOM, arPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+ 	
+ 	Dim arTextForReplace as Object
+ 	arTextForReplace = SiamsReportLib.TArray.Create(1)
+
+	If Not IsNull(oElements) Then 	
+	 	Dim itIndex
+	 	Dim oNode as Object
+	 	Dim sReplace as String
+	 	Dim sFind as String
+	 	For itIndex = 0 To oElements.iLength - 1
+	 		oNode = oElements.arData(itIndex)
+	 		sFind = oNode.GetAttribute("find")
+	 		sReplace = oNode.GetChildNodes().Item(0).GetNodeValue()
+
+			Dim oFindReplace as new TFindReplaceData
+			oFindReplace.sFind = sFind
+			oFindReplace.sReplace = sReplace
+	 		
+	 		SiamsReportLib.TArray.Add(arTextForReplace, oFindReplace)
+	 	Next itIndex
+ 	End If
+
+	GetTextForReplaceFromDOM = arTextForReplace
+End Function
+
+Function GetTablesFromDOM(oDOM as Object) as Object
+	Dim arPath(3) as String
+	arPath(0) = "datasources"
+	arPath(1) = "tables"
+	arPath(2) = "table"
+
+	Dim arRowPath(1) as String
+	arRowPath(0) = "tr"
+	
+	Dim arColPath(1) as String
+	arColPath(0) = "td"
+	
+	
+	Dim oElements as Object 'TArray
+ 	oElements = SiamsReportLib.XML.FindAll(oDOM, arPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+ 	
+ 	Dim arTablesData as Object
+ 	arTablesData = SiamsReportLib.TArray.Create(1)
+
+	If Not IsNull(oElements) Then 	
+	 	Dim oNode as Object
+	 	Dim sTableId as String
+	 	Dim iStartRow as Integer
+
+	 	Dim itTableIndex	 	
+	 	For itTableIndex = 0 To oElements.iLength - 1
+	 		oNode = oElements.arData(itTableIndex)
+	 		sTableId = oNode.GetAttribute("id")
+	 		iStartRow = oNode.GetAttribute("start_row")
+
+			Dim oTableData as new TTableData
+			oTableData.sTableId = sTableId
+			oTableData.iStartRow = iStartRow
+
+			'create arRowData object for each table			
+		 	Dim arRowsData as Object
+		 	arRowsData = SiamsReportLib.TArray.Create(1)
+		 	
+			Dim oRows
+			oRows = SiamsReportLib.XML.FindAll(oNode, arRowPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+
+			Dim itRowIndex
+		 	For itRowIndex = 0 To oRows.iLength - 1 'iterate over all 'tr' tags
+		 		'create arColData for each row
+			 	Dim arColData as Object
+			 	arColData = SIamsReportLib.TArray.Create(1)
+		 		
+		 		Dim oCols
+		 		oCols = SiamsReportLib.XML.FindAll(oRows.arData(itRowIndex), arColPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+
+		 		Dim itColIndex
+		 		For itColIndex = 0 To oCols.iLength - 1 'iterate over all 'td' tags
+		 			oNode = oCols.arData(itColIndex)
+		 			Dim sColValue as String
+		 			
+		 			sColValue = oNode.GetChildNodes().Item(0).GetNodeValue()
+		 			
+			 		SiamsReportLib.TArray.Add(arColData, sColValue) 'collect column data for each row
+		 			
+		 		Next itColIndex
+		 		
+		 		SiamsReportLib.TArray.Add(arRowsData, arColData) 'collect row data for
+		 		
+		 	Next itRowIndex
+			
+			oTableData.arRowsData = arRowsData
+	 		
+	 		SiamsReportLib.TArray.Add(arTablesData, oTableData)
+	 	Next itTableIndex
+ 	End If
+
+	GetTablesFromDOM = arTablesData
+End Function
+
+Function GetImagesFromDOM(oDOM as Object) as Object
+	Dim arPath(3) as String
+	arPath(0) = "datasources"
+	arPath(1) = "images"
+	arPath(2) = "img"
+	
+	Dim oElements as Object 'TArray
+ 	oElements = SiamsReportLib.XML.FindAll(oDOM, arPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+ 	
+ 	Dim arImagesData as Object
+ 	arImagesData = SiamsReportLib.TArray.Create(1)
+
+	If Not IsNull(oElements) Then 	
+	 	Dim itIndex
+	 	Dim oNode as Object
+	 	Dim sSrc as String
+	 	Dim sId as String
+	 	For itIndex = 0 To oElements.iLength - 1
+	 		oNode = oElements.arData(itIndex)
+	 		sId = oNode.GetAttribute("id")
+	 		sSrc = oNode.GetAttribute("src")
+
+			Dim oImage as new TImage
+			oImage.sId = sId
+			oImage.sSrc = sSrc
+			oImage.sURL = ConvertToURL(sSRC)
+	 		
+	 		SiamsReportLib.TArray.Add(arImagesData, oImage)
+	 	Next itIndex
+ 	End If
+
+	GetImagesFromDOM = arImagesData	
+End Function
+
+Function GetBookmarksFromDOM(oDOM as Object) as Object
+	Dim arPath(3) as String
+	arPath(0) = "datasources"
+	arPath(1) = "bookmarks"
+	arPath(2) = "object"
+	
+	Dim oElements as Object 'TArray
+ 	oElements = SiamsReportLib.XML.FindAll(oDOM, arPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+ 	
+ 	Dim arBookmarksData as Object
+ 	arBookmarksData = SiamsReportLib.TArray.Create(1)
+
+	If Not IsNull(oElements) Then 	
+	 	Dim itIndex
+	 	Dim oNode as Object
+	 	Dim sType as String
+	 	Dim sObjectId as String
+	 	Dim sText as String
+	 	Dim sBookmarkId as String
+	 	For itIndex = 0 To oElements.iLength - 1
+	 		oNode = oElements.arData(itIndex)
+
+	 		sType = oNode.GetAttribute("type")	
+	 		sBookmarkId = oNode.GetAttribute("bookmark_id")
+	 		
+	 		If sType = "text" Then
+		 		sText = oNode.GetChildNodes().Item(0).GetNodeValue()
+	 		End If
+	 		If sType = "img" Then
+		 		sObjectId = oNode.GetAttribute("object_id")
+	 		End If
+	 		If sType = "table" Then
+	 			sObjectId = oNode.GetAttribute("object_id")
+	 		End If
+
+			Dim oBookmark as new TBookmark
+			oBookmark.sBookmarkId = sBookmarkId
+			oBookmark.sType = sType
+			oBookmark.sObjectId = sObjectId
+			oBookmark.sText = sText
+	 		
+	 		SiamsReportLib.TArray.Add(arBookmarksData, oBookmark)
+	 	Next itIndex
+ 	End If
+
+	GetBookmarksFromDOM = arBookmarksData
+End Function
+
+Function GetChartsFromDOM(oDOM as Object) as Object
+	Dim arPath(3) as String
+	arPath(0) = "datasources"
+	arPath(1) = "charts"
+	arPath(2) = "chart"
+	
+	Dim arLayerPath(1) as String
+	arLayerPath(0) = "layer"
+	
+	Dim arYPath(1) as String
+	arYPath(0) = "val"
+	
+	Dim arXLabelPath(2) as String
+	arXLabelPath(0) = "x-labels"
+	arXLabelPath(1) = "val"
+	
+	Dim oElements as Object 'TArray
+ 	oElements = SiamsReportLib.XML.FindAll(oDOM, arPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+ 	
+ 	Dim arChartsData as Object
+ 	arChartsData = SiamsReportLib.TArray.Create(1)
+
+	If Not IsNull(oElements) Then 	
+	 	Dim itIndex
+	 	Dim oNode as Object
+	 	Dim sChartId as String
+	 	For itIndex = 0 To oElements.iLength - 1
+	 		oNode = oElements.arData(itIndex)
+
+	 		sChartId = oNode.GetAttribute("id")
+	 		
+	 		'Read x labels for chart
+	 		Dim oXLabels as Object
+	 		oXLabels = SiamsReportLib.XML.FindAll(oNode, arXLabelPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+
+			Dim sXLabel as String	 		
+	 		Dim oXLabelNode as Object
+	 		Dim itXLabelIndex as Integer
+	 		Dim arXLabels as Object
+	 		arXLabels = SiamsReportLib.TArray.Create(1)
+	 		For itXLabelIndex = 0 To oXLabels.iLength - 1
+	 			oXLabelNode = oXLabels.arData(itXLabelIndex)
+	 			sXLabel = oXLabelNode.GetChildNodes().Item(0).GetNodeValue()
+
+				SiamsReportLib.TArray.Add(arXLabels, sXLabel)	 			
+	 		Next itXLabelIndex
+
+			'Read layers data
+			Dim oLayers as Object
+			oLayers = SiamsReportLib.XML.FindAll(oNode, arLayerPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+			
+			Dim sLayerId as String
+			Dim oLayerNode as Object
+			Dim arLayers as Object 'TArray of TChartLayer
+			arLayers = SiamsReportLib.TArray.Create(1)
+			
+			Dim itLayerIndex as Integer
+			For itLayerIndex = 0 To oLayers.iLength - 1
+				oLayerNode = oLayers.arData(itLayerIndex)
+				sLayerId = oLayerNode.GetAttribute("id")
+				
+				'Read Y data for all layers
+				Dim oData as Object
+				oData = SiamsReportLib.XML.FindAll(oLayerNode, arYPath, com.sun.star.xml.dom.NodeType.ELEMENT_NODE)
+
+				Dim oDataNode as Object				
+				Dim fY as Double
+				Dim itDataIndex as Integer
+				Dim arData as Object 'TArray of TChartData
+				arData = SiamsReportLib.TArray.Create(1)
+				For itDataIndex = 0 To oData.iLength - 1
+					oDataNode = oData.arData(itDataIndex)
+					fY = oDataNode.GetChildNodes().Item(0).GetNodeValue()
+					
+			 		SiamsReportLib.TArray.Add(arData, fY)
+				Next itDataIndex
+				
+				Dim oLayer as new TChartLayer
+				oLayer = new TChartLayer
+				oLayer.sId = sLayerId
+				oLayer.arData = arData
+				
+				SiamsReportLib.TArray.Add(arLayers, oLayer)
+				
+			Next itLayerIndex
+	 		
+			Dim oChart as new TChart
+			oChart.sId = sChartId
+			oChart.arLayers = arLayers
+			oChart.arXLabels = arXLabels
+
+	 		SiamsReportLib.TArray.Add(arChartsData, oChart)
+	 	Next itIndex
+ 	End If
+
+	GetChartsFromDOM = arChartsData
+End Function
+
+Function GetImgById(arImagesData as Object, sImageId as String) as Object
+	Dim oImage as Object
+	Dim itImageIndex as Integer
+	For itImageIndex = 0 To arImagesData.iLength
+		If arImagesData.arData(itImageIndex).sId = sImageId Then
+			oImage = arImagesData.arData(itImageIndex)
+			Exit For
+		End If
+	Next itImageIndex
+	
+	GetImgById = oImage
+End Function
+
+Function GetLayerById(arLayersData as Object, sLayerId as String) as Object
+	Dim oLayer as Object
+	Dim itLayerIndex as Integer
+	For itLayerIndex = 0 To arLayersData.iLength - 1
+		If arLayersData.arData(itLayerIndex).sId = sLayerId Then
+			oLayer = arLayersData.arData(itLayerIndex)
+			Exit For
+		End If
+	Next itLayerIndex
+	
+	GetLayerById = oLayer
+End Function

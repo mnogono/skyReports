@@ -1,0 +1,400 @@
+Option Explicit
+
+REM  *****  BASIC  *****
+
+Sub Main
+	'First function is empty main for no execute any method
+	'LoadLibrary("D:\w\OpenOfficeTest\", "SiamsReportBuilder")
+	BuildReport("D:/w/OpenOfficeTest/WriterTemplateBuildTest/settings.xml")
+End Sub
+
+Sub BuildReport(sSettingsFile)
+    '0. Read settings.xml file
+	SiamsReportBuilder.BuilderSettings.ReadXMLSettingsFile(sSettingsFile)
+	
+	'1. Reading data.xml file
+	SiamsReportBuilder.BuilderData.ReadXMLDataFile(SiamsReportBuilder.BuilderSettings.BuilderSettings.sDataFile)
+	
+	'3. Open template document
+	
+	Dim oDoc                   
+	Dim arProperties(1) as new com.sun.star.beans.PropertyValue
+	arProperties(0).Name = "AsTemplate"
+	arProperties(0).Value = True
+	arProperties(1).Name = "Hidden"
+	arProperties(1).Value = True
+	
+	oDoc = SiamsReportLib.File.LoadDocumentFromFile(SiamsReportBuilder.BuilderSettings.BuilderSettings.sTemplateFile, arProperties)
+
+	'1. replace user data
+	ReplaceUsersData(oDoc, SiamsReportBuilder.BuilderSettings.BuilderSettings, SiamsReportBuilder.BuilderData)
+	
+	'2. replace texts
+	ReplaceTexts(oDoc, SiamsReportBuilder.BuilderSettings.BuilderSettings, SiamsReportBuilder.BuilderData)
+
+	'3. fill tables
+	FillTables(oDoc, SiamsReportBuilder.BuilderSettings.BuilderSettings, SiamsReportBuilder.BuilderData)
+	
+	'4. insert some objects to bookmark anchor
+	InsertObjectsToBookmarks(oDoc, SiamsReportBuilder.BuilderSettings.BuilderSettings, SiamsReportBuilder.BuilderData)
+	
+	'5. fills charts data
+	FillCharts(oDoc, SiamsReportBuilder.BuilderSettings.BuilderSettings, SiamsReportBuilder.BuilderData)
+	
+	'5. Save output documents
+	SaveOutputDocuments(oDoc,  SiamsReportBuilder.BuilderSettings.BuilderSettings)
+	
+	'6. Close document
+	SiamsReportLib.File.CloseDocument(oDoc)
+End Sub
+
+'Author: Included with OpenOffice
+'Modified by Andrew Pitonyak
+Function GetDocumentType(oDoc)
+  Dim sImpress$
+  Dim sCalc$
+  Dim sDraw$
+  Dim sBase$
+  Dim sMath$
+  Dim sWrite$
+
+  sCalc    = "com.sun.star.sheet.SpreadsheetDocument"
+  sImpress = "com.sun.star.presentation.PresentationDocument"
+  sDraw    = "com.sun.star.drawing.DrawingDocument"
+  sBase    = "com.sun.star.sdb.DatabaseDocument"
+  sMath    = "com.sun.star.formula.FormulaProperties"
+  sWrite   = "com.sun.star.text.TextDocument"
+
+  On Local Error GoTo NODOCUMENTTYPE
+  If oDoc.SupportsService(sCalc) Then
+    GetDocumentType() = "scalc"
+  ElseIf  oDoc.SupportsService(sWrite) Then
+    GetDocumentType() = "swriter"
+  ElseIf  oDoc.SupportsService(sDraw) Then
+    GetDocumentType() = "sdraw"
+  ElseIf  oDoc.SupportsService(sMath) Then
+    GetDocumentType() = "smath"
+  ElseIf  oDoc.SupportsService(sImpress) Then
+	GetDocumentType() = "simpress"
+  ElseIf  oDoc.SupportsService(sBase) Then
+    GetDocumentType() = "sbase"
+  End If
+  NODOCUMENTTYPE:
+  If Err <> 0 Then
+    GetDocumentType = ""
+    Resume GOON
+    GOON:
+  End If
+End Function
+
+Function GetPDFFilter(oDoc)
+  REM Author: Alain Viret [Alain.Viret@bger.admin.ch]
+  REM Modified by Andrew Pitonyak
+  On Local Error GoTo NODOCUMENTTYPE
+  Dim sImpress$
+  Dim sCalc$
+  Dim sDraw$
+  Dim sBase$
+  Dim sMath$
+  Dim sWrite$
+
+  sCalc    = "com.sun.star.sheet.SpreadsheetDocument"
+  sImpress = "com.sun.star.presentation.PresentationDocument"
+  sDraw    = "com.sun.star.drawing.DrawingDocument"
+  sBase    = "com.sun.star.sdb.DatabaseDocument"
+  sMath    = "com.sun.star.formula.FormulaProperties"
+  sWrite   = "com.sun.star.text.TextDocument"
+
+  On Local Error GoTo NODOCUMENTTYPE
+  If oDoc.SupportsService(sCalc) Then
+    GetPDFFilter() = "calc_pdf_Export"
+  ElseIf  oDoc.SupportsService(sWrite) Then
+    GetPDFFilter() = "writer_pdf_Export"
+  ElseIf  oDoc.SupportsService(sDraw) Then
+    GetPDFFilter() = "draw_pdf_Export"
+  ElseIf  oDoc.SupportsService(sMath) Then
+    GetPDFFilter() = "math_pdf_Export"
+  ElseIf  oDoc.SupportsService(sImpress) Then
+    GetPDFFilter() = "impress_pdf_Export"
+  End If
+  NODOCUMENTTYPE:
+  If Err <> 0 Then
+    GetPDFFilter() = ""
+    Resume GOON
+    GOON:
+  End If
+End Function 
+
+Function GetPropertyForExportMSWord(oDoc as Object) as Object
+	Dim arProperties(0) as new com.sun.star.beans.PropertyValue
+	arProperties(0).Name = "FilterName"
+	arProperties(0).Value = "MS Word 97"
+	
+	GetPropertyForExportMSWord = arProperties
+End Function
+
+Function GetPropertyForExportPDF(oDoc as Object) as Object
+	Dim arProperties(0) as new com.sun.star.beans.PropertyValue
+	arProperties(0).Name = "FilterName"
+	arProperties(0).Value = GetPDFFilter(oDoc)
+	
+	GetPropertyForExportPDF = arProperties
+End Function
+
+Sub SaveOutputDocuments(oDoc as Object, oSettings as Object)
+	Dim itOutFileIndex as Integer
+	Dim oOutputFile as Object 'TOutputFile
+	For itOutFileIndex = 0 To oSettings.arOutputFiles.iLength - 1
+		Dim arProperties()
+		oOutputFile = oSettings.arOutputFiles.arData(itOutFileIndex)
+
+		If oOutputFile.sType = "MSWord" Then
+			arProperties = GetPropertyForExportMSWord(oDoc)
+		End If
+		If oOutputFile.sType = "PDF" Then
+			arProperties = GetPropertyForExportPDF(oDoc)
+		End If
+		
+		On Error Goto Catch		
+		
+		SiamsReportLib.File.SaveToDocument(oDoc, oOutputFile.sFile, arProperties)
+		
+		Catch:
+	Next itOutFileIndex
+End Sub
+
+'Replace user data fields in document
+'oSettings object of SiamsReportBuilder.BuilderSettings (readed from settings.xml)
+'oData object of SiamsReportBuilder.BuilderData
+Sub ReplaceUsersData(oDoc as Object, oSettings as Object, oData as Object)
+	Dim oMasters as Object
+	Dim arMastersNames 'Array of texts
+	Dim sMasterName
+	Dim oMaster
+
+	oMasters = oDoc.GetTextFieldMasters()
+
+	Dim itUserDataIndex
+	Dim oUserData
+	Dim sUserDataField
+	
+	For itUserDataIndex = 0 To oData.arUsersData.iLength - 1
+		oUserData = oData.arusersData.arData(itUserDataIndex)
+		sUserDataField = "com.sun.star.text.FieldMaster.User." & oUserData.sId
+		
+		On Error Goto Catch		
+
+		'Throw exception if no such element found		
+		oMaster = oMasters.GetByName(sUserDataField)
+		oMaster.Content = oUserData.sText
+		
+		Catch:
+	Next itUserDataIndex 
+End Sub
+
+Sub ReplaceTexts(oDoc as Object, oSettings as Object, oData as Object)
+	Dim oDescriptor as Object
+	oDescriptor = oDoc.CreateReplaceDescriptor()
+	
+	Dim oFindReplaceData
+	Dim itFindReplaceIndex
+	For itFindReplaceIndex = 0 To oData.arTextForReplace.iLength - 1
+		oFindReplaceData = oData.arTextForReplace.arData(itFindReplaceIndex)
+
+		oDescriptor.SearchString = oFindReplaceData.sFind
+		oDescriptor.ReplaceString = oFindReplaceData.sReplace
+		oDoc.ReplaceAll(oDescriptor)
+		
+	Next itFindReplaceIndex
+End Sub
+
+Sub InsertObjectsToBookmarks(oDoc as Object, oSettings as Object, oData as Object)
+	Dim oBookmark as Object 'BuilderData.TBookmark
+	Dim oDocBookmarks as Object 'all bookmarks in document
+	Dim oDocBookmark as Object
+	Dim oInsertPoint as Object 'point in document where need to insert some object (image, table, text, ...)
+	Dim oText as Object
+
+	oDocBookmarks = oDoc.GetBookmarks()
+
+	Dim itBookmarkIndex as Integer
+	For itBookmarkIndex = 0 To oData.arBookmarksData.iLength - 1
+		oBookmark = oData.arBookmarksData.arData(itBookmarkIndex)
+		If oDocBookmarks.HasByName(oBookmark.sBookmarkId) Then
+			oDocBookmark = oDocBookmarks.GetByName(oBookmark.sBookmarkId)
+			
+			oInsertPoint = oDocBookmark.GetAnchor()
+			
+			If oBookmark.sType = "text" Then
+				InsertText(oDoc, oInsertPoint, oBookmark.sText)
+				'oInsertPoint.String = oBookmark.sText
+				'oText = oInsertPoint.GetText()
+				'oText.InsertString(oText.End, oBookmark.sText, false)
+			End If
+			If oBookmark.sType = "img" Then
+				Dim oImage
+				oImage = SiamsReportBuilder.BuilderData.GetImgById(oData.arImagesData, oBookmark.sObjectId)
+				If Not IsNull(oImage) Then
+					InsertImage(oDoc, oInsertPoint, oImage)
+				End If
+			End If
+		End If
+	Next itBookmarkIndex	
+End Sub
+
+Sub InsertText(oDoc as Object, oAnchor as Object, sText as String)
+	oAnchor.SetString(sText)
+End Sub
+
+Sub InsertImage(oDoc as Object, oAnchor as Object, oImage as Object)
+	Dim oGraph
+	
+	oGraph = oDoc.CreateInstance("com.sun.star.text.GraphicObject")
+	With oGraph
+		.GraphicURL = oImage.sURL
+		.AnchorType = com.sun.star.text.TextContentAnchorType.AS_CHARACTER
+		.Width = 6000
+		.Height = 8000
+	End With
+	
+	oAnchor.GetText().InsertTextContent(oAnchor, oGraph, False)
+End Sub
+
+Sub FillTables(oDoc as Object, oSettings as Object, oData as Object)
+	Dim oDocTables as Object
+	Dim oTableData as Object
+	Dim oDocTable as Object
+	Dim itDocTableIndex as Integer
+	Dim itRowIndex as Integer
+	Dim itColIndex as Integer
+	Dim arRowsData as Object
+	Dim arColsData as Object
+'	Dim oTable as Object
+	Dim oDocCell as Object
+	Dim sDocCellName as String
+	Dim oDocTableRows as Object
+	Dim iStartRow as Integer
+	
+	Dim itTableIndex as Integer
+	For itTableIndex = 0 To oData.arTablesData.iLength - 1
+		oTableData = oData.arTablesData.arData(itTableIndex)
+
+		'find table by id
+		oDocTables = oDoc.GetTextTables()
+		If oDocTables.GetCount() = 0 Then
+			Exit For
+		End If
+		
+		If Not oDocTables.hasByName(oTableData.sTableId) Then
+			Exit For
+		End If		
+		
+		oDocTable = oDocTables.GetByName(oTableData.sTableId)
+	
+		arRowsData = oTableData.arRowsData
+		oDocTableRows = oDocTable.GetRows()
+		
+		'insert additional rows to table
+		iStartRow = oDocTableRows.Count
+		oDocTableRows.InsertByIndex(iStartRow, arRowsData.iLength - 1)
+		
+		'start inserting data to the last row in template table
+		For itRowIndex = 0 To arRowsData.iLength - 1
+		
+			arColsData = arRowsData.arData(itRowIndex)
+			
+			For itColIndex = 0 To arColsData.iLength - 1
+				sDocCellName = SiamsReportLib.Table.GetColumnNameByIndex(itColIndex) & (itRowIndex + iStartRow)
+				oDocCell = oDocTable.GetCellByName(sDocCellName)
+				oDocCell.SetString(arColsData.arData(itColIndex))
+			Next itColIndex
+		Next itRowIndex
+	Next itTableIndex
+End Sub
+
+Sub FillCharts(oDoc as Object, oSettings as Object, oData as Object)
+	Dim oDocChart as Object
+	Dim oDocLayer as Object
+	Dim oDocEmbeddedObjects as Object
+	Dim oEmbeddedObject as Object
+	Dim oDocChartData as Object
+	Dim arXAxisLabels() as String
+	Dim arChartLayersIds() as String
+	Dim itX as Integer
+
+	Dim oChart as Object 'TChart
+	Dim oLayer as Object 'TChartLayer
+	
+	oDocEmbeddedObjects = oDoc.getEmbeddedObjects()
+	
+	Dim itChartIndex as Integer
+	For itChartIndex = 0 To oData.arChartsData.iLength - 1
+		oChart = oData.arChartsData.arData(itChartIndex)
+		
+		If oDocEmbeddedObjects.HasByName(oChart.sId) Then
+			oEmbeddedObject = oDocEmbeddedObjects.GetByName(oChart.sID)
+			oDocChart = oEmbeddedObject.EmbeddedObject.GetComponent()
+			oDocChartData = oDocChart.GetData()
+
+			arChartLayersIds = oDocChartData.GetColumnDescriptions()
+			Dim itLayerIndex
+			Dim sLayerId
+			
+			'prepare internal buffer for chart layers ar(x)(iLayer) = y
+			Dim ar
+			ReDim ar(oChart.arXLabels.iLength - 1, UBound(arChartLayersIds))
+			
+			For itLayerIndex = 0 To UBound(arChartLayersIds)
+				sLayerId = arChartLayersIds(itLayerIndex)
+				oLayer = SiamsReportBuilder.BuilderData.GetLayerById(oChart.arLayers, sLayerId)
+				If Not IsNull(oLayer) Then
+					For itX = 0 To oChart.arXLabels.iLength - 1
+						ar(itX, itLayerIndex) = oLayer.arData.arData(itX)
+					Next itX
+				End If
+			Next itLayerIndex
+			
+			oDocChartData.SetRowDescriptions(SiamsReportLib.TArray.ConvertToArray(oChart.arXLabels))
+			oDocChartData.SetData(ar)
+
+		End If
+	Next itChartIndex
+End Sub
+
+Sub HelloWorld(sText as string)
+	print "Hello World" + sText
+End Sub
+
+'use right slash for folder separator example: "D:/w/OpenOfficeTest/ExecuteMacro/Debug/invoke_macro.odt"
+Sub OpenDoc(sPath)
+	Dim  url
+	url = ConvertToURL(sPath)
+	print url
+	StarDesktop.LoadComponentFromURL(url, "_default", 0, Array())
+End Sub
+
+'Just insert text into document
+Sub InsertString(logText as string)
+	Dim oDoc As Variant
+	Dim oText As Variant
+	Dim oCursor
+	oDoc = ThisComponent
+	oText = oDoc.getText
+	oViewCursor = oDoc.CurrentController.getViewCursor()
+	oTextCursor = oText.createTextCursorByRange(oViewCursor.getStart())
+	oText.insertString(oTextCursor, logText, FALSE)
+End Sub
+
+'load library into global or document scope?
+Sub LoadLibrary(sLibPath as string, sLibName as string)
+	Dim oLib as object
+
+	'add a link to the library referenced
+	With GlobalScope
+       if .BasicLibraries.IsLibraryLoaded(sLibName) then
+         .BasicLibraries.RemoveLibrary(sLibName)
+       end if
+	   .BasicLibraries.CreateLibraryLink(sLibName, convertToURL(sLibPath & sLibName), False)
+	   .BasicLibraries.LoadLibrary(sLibName)
+	End With
+End Sub

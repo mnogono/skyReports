@@ -1,0 +1,55 @@
+REM  *****  BASIC  *****
+
+Sub Main
+End Sub
+
+Function LoadDocumentFromFile(sFile as String, optional arProperties() as com.sun.star.beans.PropertyValue) as Object
+	Dim  sURL as String
+	sURL = ConvertToURL(sFile)
+	If IsMissing(arProperties) Then
+		Dim prop() as new com.sun.star.beans.PropertyValue
+		arProperties = prop
+	End If
+	
+	LoadDocumentFromFile() = StarDesktop.LoadComponentFromURL(sURL, "_blank", 0, arProperties)
+End Function
+
+Sub CloseDocument(oDoc as Object)
+	If HasUnoInterfaces(oDoc, "com.sun.star.util.XCloseable") Then
+		oDoc.Close(true)
+	Else
+		oDoc.Dispose()
+	End If	
+End Sub
+
+Sub SaveDocument(oDoc as Object)
+	If (oDoc.isModified()) Then
+		If (oDoc.HasLocation() AND (Not oDoc.IsReadOnly())) Then
+			oDoc.Store()
+		Else
+			'Either the document does not have a location or you cannot
+			'save the document because the location is read-only.
+			oDoc.SetModified(False)
+		End If
+	End If
+End Sub
+
+Sub SaveAsDocument(oDoc as Object, sFile as String, optional arProperties)
+	Dim sURL
+	sURL = ConvertToUrl(sFile)
+	If IsMissing(arProperties) Then
+		Dim arProp() as new com.sun.star.beans.PropertyValue
+		arProperties = arProp
+	End If	
+	oDoc.StoreAsURL(sURL, arProperties)
+End Sub
+
+Sub SaveToDocument(oDoc as Object, sFile as String, optional arProperties)
+	Dim sURL
+	sURL = ConvertToUrl(sFile)
+	If IsMissing(arProperties) Then
+		Dim arProp() as new com.sun.star.beans.PropertyValue
+		arProperties = arProp
+	End If	
+	oDoc.StoreToURL(sURL, arProperties)
+End Sub

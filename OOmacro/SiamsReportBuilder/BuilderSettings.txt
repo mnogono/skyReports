@@ -1,0 +1,87 @@
+Option Explicit
+
+Type TOutputFile
+	sFile as String
+	sType as String
+End Type
+
+Type TBuilderSettings
+	sTemplateFile as String
+	sDataFile as String
+	sLogLevel as String
+	sLoggerType as String
+	arOutputFiles as Object
+End Type
+
+'object for storing report builder settings
+Dim BuilderSettings as TBuilderSettings
+
+Sub Main
+	SiamsReportBuilder.ReadBuilderXMLSettingsFile("D:/w/OpenOfficeTest/WriterTemplateBuildTest/settings.xml")
+End Sub
+
+Sub ReadXMLSettingsFile(sFile as String)
+	Dim oDOM as Object
+	Dim oRootElements as Object
+	Dim oNode
+	Dim oNodeSettings
+	Dim oNodeSetting
+	Dim sNodeName as String
+	Dim oSettingsElements
+	
+	oDOM = SiamsReportLib.XML.ParseXMLFile(sFile)
+	If IsEmpty(oDOM) Then
+		print "oDOM is empty"
+		Exit Sub
+	End If
+
+	oRootElements = oDOM.GetChildNodes()
+	
+	Dim itRoot
+	For itRoot = 0 To oRootElements.GetLength - 1
+		oNode = oRootElements.Item(itRoot)
+		Select Case oNode.GetNodeType
+			Case com.sun.star.xml.dom.NodeType.ELEMENT_NODE
+				sNodeName = oNode.GetNodeName()
+				Select Case sNodeName
+					Case "settings"
+						oNodeSettings = oNode
+						oSettingsElements = oNodeSettings.GetChildNodes()
+						Dim itSetting
+						For itSetting = 0 To oSettingsElements.GetLength - 1						
+							oNode = oSettingsElements.Item(itSetting)
+							Select Case oNode.GetNodeType()
+								Case com.sun.star.xml.dom.NodeType.ELEMENT_NODE
+									sNodeName = oNode.GetNodeName()
+									Select Case sNodeName
+										Case "setting"
+											oNodeSetting = oNode
+											Select Case oNodeSetting.GetAttribute("name")
+												Case "TemplateFile"
+													BuilderSettings.sTemplateFile = oNodeSetting.GetAttribute("value")
+												Case "DataFile"
+													BuilderSettings.sDataFile = oNodeSetting.GetAttribute("value")
+												Case "LogLevel"
+													BuilderSettings.sLogLevel = oNodeSetting.GetAttribute("value")
+												Case "LoggerType"
+													BuilderSettings.sLoggerType = oNodeSetting.GetAttribute("value")
+												Case "OutputFile"
+													Dim sFile
+													Dim sType
+													Dim oOutputFile as new TOutputFile
+													
+													sFile = oNodeSetting.GetAttribute("value")
+													sType = oNodeSetting.GetAttribute("type")
+
+													oOutputFile.sFile = sFile
+													oOutputFile.sType = sType
+													
+													SiamsReportLib.TArray.Add(BuilderSettings.arOutputFiles, oOutputFile)
+											End Select
+									End Select
+							End Select
+						Next
+				End Select
+		End Select		
+	Next
+End Sub

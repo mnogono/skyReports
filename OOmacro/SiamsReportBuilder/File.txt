@@ -1,0 +1,205 @@
+Option Explicit
+
+REM  *****  BASIC  *****
+
+Sub Main
+  'Dim properties as new com.sun.star.beans.PropertyValue
+  'Dim sXmlFile as String 
+  'Dim sXmlUrl as String
+  
+  'sXmlFile = "D:/w/OpenOfficeTest/test.xml"
+  'sXmlUrl = ConvertToURL(sXmlFile)
+  'ReadXmlFromUrl(sXmlUrl)
+End Sub
+
+Function LoadDocumentFromFile(sFile as String, optional arProperties() as com.sun.star.beans.PropertyValue) as Object
+	Dim  sURL as String
+	sURL = ConvertToURL(sFile)
+	If IsMissing(arProperties) Then
+		Dim prop() as new com.sun.star.beans.PropertyValue
+		arProperties = prop
+	End If
+	
+	LoadDocumentFromFile() = StarDesktop.LoadComponentFromURL(sURL, "_blank", 0, arProperties)
+End Function
+
+Sub CloseDocument(oDoc as Object)
+	If HasUnoInterfaces(oDoc, "com.sun.star.util.XCloseable") Then
+		oDoc.Close(true)
+	Else
+		oDoc.Dispose()
+	End If	
+End Sub
+
+Sub SaveDocument(oDoc as Object)
+	If (oDoc.isModified()) Then
+		If (oDoc.HasLocation() AND (Not oDoc.IsReadOnly())) Then
+			oDoc.Store()
+		Else
+			'Either the document does not have a location or you cannot
+			'save the document because the location is read-only.
+			oDoc.SetModified(False)
+		End If
+	End If
+End Sub
+
+Sub SaveAsDocument(oDoc as Object, sFile as String, optional arProperties)
+	Dim sURL
+	sURL = ConvertToUrl(sFile)
+	If IsMissing(arProperties) Then
+		Dim arProp() as new com.sun.star.beans.PropertyValue
+		arProperties = arProp
+	End If	
+	oDoc.StoreAsURL(sURL, arProperties)
+End Sub
+
+Sub SaveToDocument(oDoc as Object, sFile as String, optional arProperties)
+	Dim sURL
+	sURL = ConvertToUrl(sFile)
+	If IsMissing(arProperties) Then
+		Dim arProp() as new com.sun.star.beans.PropertyValue
+		arProperties = arProp
+	End If	
+	oDoc.StoreToURL(sURL, arProperties)
+End Sub
+
+Function Sum() as Integer
+	Sum = 10
+End Function
+
+' This routine demonstrates how to use the Universal Content Broker's
+'  SimpleFileAccess to read from a local file.
+Sub ReadXmlFromUrl(sUrl as String)
+  ' The SimpleFileAccess service provides mechanisms to 
+  '  open, read, write files,
+  '  as well as scan the directories of folders to see what they contain.
+  ' The advantage of this over Basic's ugly file manipulation is that this
+  '  technique works the same way in any programming language.
+  '  Furthermore, the program could be running on one machine, 
+  '  while the SimpleFileAccess
+  '  accesses files from the point of view of the machine running OOo, 
+  '  not the machine
+  '  where, say a remote Java or Python program is running.
+  dim oSFA
+  dim oInputStream
+  
+  oSFA = createUnoService( "com.sun.star.ucb.SimpleFileAccess" )
+   
+  ' Open input file.
+  oInputStream = oSFA.openFileRead(sUrl
+  ReadXmlFromInputStream( oInputStream )
+  oInputStream.closeInput()
+End Sub
+
+Sub ReadXmlFromInputStream( oInputStream )
+	dim oSaxParser
+	dim oDocEventsHandler
+	dim oInputSource
+  ' Create a Sax Xml parser.
+  oSaxParser = createUnoService( "com.sun.star.xml.sax.Parser" )
+
+  ' Create a document event handler object.
+  ' As methods of this object are called, Basic arranges
+  '  for global routines (see below) to be called.   
+  oDocEventsHandler = CreateDocumentHandler()
+   
+  ' Plug our event handler into the parser.
+  ' As the parser reads an Xml document, it calls methods
+  '  of the object, and hence global subroutines below
+  '  to notify them of what it is seeing within the Xml document.
+  oSaxParser.setDocumentHandler( oDocEventsHandler )
+  
+  ' Create an InputSource structure.
+  oInputSource = createUnoStruct( "com.sun.star.xml.sax.InputSource" )
+  With oInputSource
+     .aInputStream = oInputStream   ' plug in the input stream
+  End With
+   
+  ' Now parse the document.
+  ' This reads in the entire document.
+  ' Methods of the oDocEventsHandler object are called as
+  '  the document is scanned.
+  oSaxParser.parseStream( oInputSource )
+End Sub
+
+'==================================================
+'   Xml Sax document handler.
+'==================================================
+
+' Global variables used by our document handler.
+'
+' Once the Sax parser has given us a document locator,
+'  the glLocatorSet variable is set to True,
+'  and the goLocator contains the locator object.
+'
+' The methods of the locator object has cool methods
+'  which can tell you where within the current Xml document
+'  being parsed that the current Sax event occured.
+' The locator object implements com.sun.star.xml.sax.XLocator.
+'
+Private goLocator As Object
+Private glLocatorSet As Boolean
+
+' This creates an object which implements the interface
+'  com.sun.star.xml.sax.XDocumentHandler.
+' The doucment handler is returned as the function result.
+Function CreateDocumentHandler()
+	dim oDocHandler
+	
+  ' Use the CreateUnoListener function of Basic.
+  ' Basic creates and returns an object that implements a
+  '  particular interface.
+  ' When methods of that object are called,
+  '  Basic will call global Basic functions whose names are the same
+  '  as the methods, but prefixed with a certian prefix.
+  oDocHandler = CreateUnoListener( "DocHandler_", _
+                                   "com.sun.star.xml.sax.XDocumentHandler" )
+  glLocatorSet = False
+  CreateDocumentHandler() = oDocHandler
+End Function
+
+'==================================================
+'   Methods of our document handler call these
+'    global functions.
+'   These methods look strangely similar to
+'    a SAX event handler.  ;-)
+'   These global routines are called by the Sax parser
+'    as it reads in an XML document.
+'   These subroutines must be named with a prefix that is
+'    followed by the event name of the 
+'    com.sun.star.xml.sax.XDocumentHandler interface.
+'==================================================
+
+Sub DocHandler_startDocument()
+  Print "Start document"
+End Sub
+
+Sub DocHandler_endDocument()
+'  Print "End document"
+End Sub
+
+Sub DocHandler_startElement( cName$, _
+                             oAttr As com.sun.star.xml.sax.XAttributeList )
+  Print "Start element", cName
+End Sub
+
+Sub DocHandler_endElement( cName As String )
+'   Print "End element", cName
+End Sub
+
+Sub DocHandler_characters( cChars As String )
+End Sub
+
+Sub DocHandler_ignorableWhitespace( cWhitespace As String )
+End Sub
+
+Sub DocHandler_processingInstruction( cTarget As String, cData As String )
+End Sub
+
+Sub DocHandler_setDocumentLocator( oLocator As com.sun.star.xml.sax.XLocator )
+  ' Save the locator object in a global variable.
+  ' The locator object has valuable methods that we can
+  '  call to determine
+  goLocator = oLocator
+  glLocatorSet = True
+End Sub

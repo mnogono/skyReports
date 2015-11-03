@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+  <setting name="TemplateFile" value="D:\w\skyReports\OOmacro\WriterTemplateBuildTest\report1\template.odt">
+    <property name="AsTemplate" value="True" />
+    <property name="Hidden" value="True" />
+  </setting>
+  <setting name="DataFile" value="D:\w\skyReports\OOmacro\WriterTemplateBuildTest\report1\data.xml" />
+  <setting name="LogLevel" value="Trace|Warning|Error" />
+  <setting name="LoggerType" value="FileLogger" />
+  <setting name="OutputFile" type="ODT" value="D:\w\skyReports\OOmacro\WriterTemplateBuildTest\report1\report.odt" />
+  <setting name="OutputFile" type="MSWord" value="D:\w\skyReports\OOmacro\WriterTemplateBuildTest\report1\report.doc" />
+  <setting name="OutputFile" type="PDF" value="D:\w\skyReports\OOmacro\WriterTemplateBuildTest\report1\report.pdf" />
+</settings>

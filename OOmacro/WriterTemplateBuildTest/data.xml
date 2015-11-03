@@ -1,0 +1,258 @@
+<datasources>
+	<users>
+		<text id="CountPointOfView">2</text>
+		<text id="SquareAnalysed">334978</text>
+		<text id="Porosity">8.0</text>
+		<text id="CountPore">548</text>
+		<text id="MinSize">2.0</text>
+		<text id="MaxSize">26.3</text>
+		<text id="AverSize">6.5</text>
+		<text id="SKOSize">4.5</text>
+		<text id="MaxRange">329.8</text>
+		<text id="MinRange">3.1</text>
+		<text id="AverRange">31.2</text>
+	</users>
+	<replace>
+		<text find="[[key1]]">Value</text>
+		<text find="${TableCaption}">Распределение пор по размерам</text>
+		<text find="\$\{.*\}" type="regexp"></text>
+	</replace>
+	<tables>
+		<table id="table1" title="Table 1 Title" caption="Table 1 Caption">
+			<columns>
+				<column id="col1"/>
+				<column id="col2"/>
+				<column id="col3"/>
+			</columns>		
+			<tr>
+				<td>Header1</td>
+				<td>Header2</td>
+				<td>Header3</td>
+			</tr>
+			<tr>
+				<td>some text1</td>
+				<td>some text2</td>
+				<td>some text3</td>
+			</tr>			
+		</table>
+		<table id="table2" title="Table 2 Title" caption="Table 2 Caption">
+			<columns>
+				<column id="col1"/>
+				<column id="col2"/>
+				<column id="col3"/>
+			</columns>
+			<tr>
+				<td>Header1</td>
+				<td>Header2</td>
+				<td>Header3</td>
+			</tr>
+			<tr>
+				<td>some text1</td>
+				<td>some text2</td>
+				<td>some text3</td>
+			</tr>			
+		</table>
+		
+		<table id="TableSizeDistribution" title="">
+			<tr>
+				<td>2.0</td>
+				<td>4.4</td>
+				<td>35.8</td>
+				<td>40.3</td>
+				<td>6.6</td>
+				<td>6.9</td>
+				<td>1.7</td>
+				<td>1.8</td>
+			</tr>
+			<tr>
+				<td>4.4</td>
+				<td>6.9</td>
+				<td>28.1</td>
+				<td>68.4</td>
+				<td>13.8</td>
+				<td>20.7</td>
+				<td>5.8</td>
+				<td>7.6</td>
+			</tr>
+			<tr>
+				<td>6.9</td>
+				<td>9.3</td>
+				<td>13.7</td>
+				<td>82.1</td>
+				<td>13.9</td>
+				<td>34.6</td>
+				<td>8.3</td>
+				<td>16.0</td>
+			</tr>
+			<tr>
+				<td>9.3</td>
+				<td>11.7</td>
+				<td>6.4</td>
+				<td>88.5</td>
+				<td>11.6</td>
+				<td>46.2</td>
+				<td>9.2</td>
+				<td>25.2</td>
+			</tr>
+			<tr>
+				<td>11.7</td>
+				<td>14.1</td>
+				<td>4.6</td>
+				<td>93.1</td>
+				<td>12.1</td>
+				<td>58.3</td>
+				<td>11.5</td>
+				<td>36.7</td>
+			</tr>
+			<tr>
+				<td>14.1</td>
+				<td>16.6</td>
+				<td>2.4</td>
+				<td>95.4</td>
+				<td>8.7</td>
+				<td>66.9</td>
+				<td>9.7</td>
+				<td>46.4</td>
+			</tr>	
+			<tr>
+				<td>16.6</td>
+				<td>19.0</td>
+				<td>1.3</td>
+				<td>96.7</td>
+				<td>6.4</td>
+				<td>73.3</td>
+				<td>8.3</td>
+				<td>54.8</td>
+			</tr>
+			<tr>
+				<td>19.0</td>
+				<td>21.4</td>
+				<td>1.1</td>
+				<td>97.8</td>
+				<td>7.1</td>
+				<td>80.4</td>
+				<td>10.5</td>
+				<td>65.3</td>
+			</tr>	
+			<tr>
+				<td>21.4</td>
+				<td>23.9</td>
+				<td>1.1</td>
+				<td>98.9</td>
+				<td>8.8</td>
+				<td>89.2</td>
+				<td>14.8</td>
+				<td>80.1</td>
+			</tr>	
+			<tr>
+				<td>23.9</td>
+				<td>26.3</td>
+				<td>0.9</td>
+				<td>99.8</td>
+				<td>8.8</td>
+				<td>98.0</td>
+				<td>16.0</td>
+				<td>96.0</td>
+			</tr>			
+		</table>
+	</tables>
+	<bookmarks>
+		<object bookmark_id="tables" type="table" object_id="table1"/>
+		<object bookmark_id="tables" type="table" object_id="table2"/>
+		<object bookmark_id="SomeTextBookmark" type="text">some text insert in bookmark position</object>
+		<object bookmark_id="images" type="img" object_id="img1"/>
+		<object bookmark_id="images" type="img" object_id="img2"/>
+		<object bookmark_id="images" type="img" object_id="img3"/>
+		<object bookmark_id="bookmarkImage123" type="img" object_id="img123"/>
+		<object bookmark_id="bookmarkDocument123" type="document" object_id="document123"/>
+	</bookmarks>
+	<documents>
+		<document id="document123" src="D:\W\OpenOfficeTest\WriterTemplateBuildTest\external.odt"/>
+	</documents>
+	<images>
+		<img id="img1" src="D:\W\OpenOfficeTest\WriterTemplateBuildTest\1.jpg" ppi="200" title="123123123"/>
+		<img id="img123" src="D:\W\OpenOfficeTest\WriterTemplateBuildTest\1.jpg" title="Image 123 Title" caption="Image 123 Caption"/>
+		<img id="img2" src="D:\W\OpenOfficeTest\WriterTemplateBuildTest\2.jpg"/>
+		<img id="img3" src="D:\W\OpenOfficeTest\WriterTemplateBuildTest\3.jpg"/>
+	</images>
+	<charts>
+		<chart id="ChartDistribCountDiff">
+			<x-labels>
+				<val>2</val>
+				<val>4.4</val>
+				<val>6.9</val>
+				<val>9.3</val>
+				<val>11.7</val>
+				<val>14.1</val>
+				<val>16.6</val>
+				<val>19.0</val>
+				<val>21.4</val>
+				<val>23.9</val>
+			</x-labels>
+			<layer id="layer1">
+				<val>35.8</val>
+				<val>28.1</val>
+				<val>13.7</val>
+				<val>6.4</val>
+				<val>4.6</val>
+				<val>2.4</val>
+				<val>1.3</val>
+				<val>1.1</val>
+				<val>1.1</val>
+				<val>0.9</val>
+			</layer>
+		</chart>
+		<chart id="ChartDistribCountInteg">
+			<x-labels>
+				<val>2</val>
+				<val>4.4</val>
+				<val>6.9</val>
+				<val>9.3</val>
+				<val>11.7</val>
+				<val>14.1</val>
+				<val>16.6</val>
+				<val>19.0</val>
+				<val>21.4</val>
+				<val>23.9</val>
+			</x-labels>
+			<layer id="layer1">
+				<val>40.3</val>
+				<val>68.4</val>
+				<val>82.1</val>
+				<val>88.5</val>
+				<val>93.1</val>
+				<val>95.4</val>
+				<val>96.7</val>
+				<val>97.8</val>
+				<val>98.9</val>
+				<val>99.8</val>
+			</layer>
+		</chart>
+		<chart id="ChartSquareDiff">
+			<x-labels>
+				<val>2</val>
+				<val>4.4</val>
+				<val>6.9</val>
+				<val>9.3</val>
+				<val>11.7</val>
+				<val>14.1</val>
+				<val>16.6</val>
+				<val>19.0</val>
+				<val>21.4</val>
+				<val>23.9</val>
+			</x-labels>
+			<layer id="layer1">
+				<val>40.3</val>
+				<val>68.4</val>
+				<val>82.1</val>
+				<val>88.5</val>
+				<val>93.1</val>
+				<val>95.4</val>
+				<val>96.7</val>
+				<val>97.8</val>
+				<val>98.9</val>
+				<val>99.8</val>
+			</layer>
+		</chart>		
+	</charts>
+</datasources>

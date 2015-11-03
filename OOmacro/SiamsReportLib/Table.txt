@@ -1,0 +1,12 @@
+Option Explicit
+
+Sub Main
+	print GetColumnNameByIndex(1)
+End Sub
+
+Function GetColumnNameByIndex(iColIndex as Integer) as String
+	Dim arColumnNames() as String
+	arColumnNames = Array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z")
+
+	GetColumnNameByIndex = arColumnNames(iColIndex)
+End Function

@@ -1,0 +1,32 @@
+<settings>
+	<setting name="TemplateFile" value="D:\w\OpenOfficeTest\WriterTemplateBuildTest\template.odt">
+		<property name="AsTemplate" value="False"/>
+		<property name="Hidden" value="False"/>
+	</setting>
+	<setting name="DataFile" value="D:\w\OpenOfficeTest\WriterTemplateBuildTest\data.xml"/>
+	<setting name="OutputFile" value="D:\w\OpenOfficeTest\WriterTemplateBuildTest\Output.odt" type="ODT"/>
+	<setting name="OutputFile" value="D:\w\OpenOfficeTest\WriterTemplateBuildTest\Output.doc" type="MSWord"/>
+	<setting name="OutputFile" value="D:\w\OpenOfficeTest\WriterTemplateBuildTest\Output.pdf" type="PDF">
+		<property name="FilterName" value="writer_pdf_Export"/>
+		<property name="FilterData">
+			<property name="PageRange" value=""/>
+			<property name="UseLosslessCompression" value="False"/>
+			<property name="Quality" value="90"/>
+			<property name="ReduceImageResolution" value="False"/>
+			<property name="MaxImageResolution" value="300"/>
+			<property name="SelectPdfVersion" value="0"/>
+			<property name="UseTaggedPDF" value="False"/>
+			<property name="ExportFormFields" value="True"/>
+			<property name="FormsType" value="0"/>
+			<property name="AllowDuplicateFieldNames" value="False"/>
+			<property name="ExportBookmarks" value="True"/>
+			<property name="ExportNotes" value="False"/>
+			<property name="ExportNotesPages" value="False"/>
+			<property name="IsSkipEmptyPages" value="False"/>
+			<property name="EmbedStandardFonts" value="False"/>
+			<property name="IsAddStream" value="False"/>
+			<property name="IsAddStream" value="False"/>
+			<property name="Watermark" value=""/>
+		</property>
+	</setting>
+</settings>
